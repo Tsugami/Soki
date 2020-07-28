@@ -10,19 +10,19 @@ import { raw } from 'express'
 // huum então é só rodar com una função chamada
 // run(ast)
 
-enum VariableType {
+enum ValueType {
     Number,
     String,
     List
 }
 
-interface Variable {
+interface Value {
     value: any;
-    type: VariableType;
+    type: ValueType;
 }
 
 interface StackFrame {
-  vars: Record<string, Variable>[];
+  vars: Record<string, Value>[];
   connected: boolean;
 }
 
