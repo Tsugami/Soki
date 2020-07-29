@@ -6,7 +6,14 @@ import { Parser } from './parser'
 import Interpreter from './interpreter'
 // import { Interpreter } from './interpreter'
 
-const lexer = new Lexer('(let a 2)')
+const lexer = new Lexer(`
+(group 
+    (let a 2))
+    
+(def functor [a b c]
+    (let b 3)
+    (let c 4))`)
+
 const ast = new Parser(lexer).parse()
 
 const int = new Interpreter(lexer.code)

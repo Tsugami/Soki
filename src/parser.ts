@@ -85,10 +85,13 @@ class Parser {
       }
     }
 
-    parse () {
-      const sttd = this.parseStatement()
+    parse (): Node[] {
+      const statements = []
+      while (this.next.type !== Kind.EOF) {
+        statements.push(this.parseStatement())
+      }
       this.eat(Kind.EOF)
-      return sttd
+      return statements
     }
 }
 

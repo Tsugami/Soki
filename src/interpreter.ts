@@ -3,7 +3,7 @@
 // então oq vamos fazer é: ela recebe o AST pra executar então
 // cria uma propriedade chamada "code"
 
-import { Node, CallNode, Literal } from './node'
+import { Node, CallNode, Literal, ListNode } from './node'
 import { errored, CompilerError } from './error'
 import { Kind } from './lexer'
 // huum então é só rodar com una função chamada
@@ -72,11 +72,40 @@ export default class Interpreter {
       }
     }
 
-    private visitSet (ast: CallNode) {
-
+    private visitFn (ast: CallNode) {
+      if (ast.compound.length >= 2) {
+        if (ast.compound[0].kind instanceof Literal && ast.compound[0].kind.kind === Kind.Ident) {
+          if (ast.compound[1].kind instanceof ListNode) {
+            ast.compound[1].kind.list.forEach(element => {
+              if (!(element.kind instanceof Literal) || element.kind.kind !== Kind.Ident) {
+                errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: element.range })
+                process.exit(0)
+              }
+            })
+            const name = this.rawCode.substring(ast.compound[0].range.start, ast.compound[0].range.end)
+            this.variables[this.variables.length - 1].vars[name] = {
+              type: ValueType.Function,
+              value:
+              {
+                params: ast.compound[1].kind.list.map(el => this.rawCode.substring(el.range.start, el.range.end)),
+                compound: ast.compound.slice(2)
+              }
+            }
+          } else {
+            errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: ast.compound[0].range })
+            process.exit(0)
+          }
+        } else {
+          errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: ast.compound[0].range })
+          process.exit(0)
+        }
+      } else {
+        errored(CompilerError.WrongParameterNumber, { code: this.rawCode, range: ast.name, expected: 2, got: ast.compound.length })
+        process.exit(0)
+      }
     }
 
-    private visitFn (ast: CallNode) {
+    private visitSet (ast: CallNode) {
 
     }
 
@@ -87,6 +116,7 @@ export default class Interpreter {
     private visitGroup (ast: CallNode) {
       this.variables.push({ vars: [], connected: true })
       ast.compound.forEach(node => this.visit(node))
+      this.variables.pop()
     }
 
     private visit (ast: Node) {
@@ -112,7 +142,8 @@ export default class Interpreter {
       }
     }
 
-    run (ast: Node) {
-      this.visit(ast)
+    run (ast: Node[]) {
+      ast.forEach(ast =>
+        this.visit(ast))
     }
 }
