@@ -8,7 +8,8 @@ enum ValueType {
     Number,
     String,
     List,
-    Function
+    Function,
+    Boolean
 }
 
 type ApplyFunction = (x: number, y: number) => number
@@ -131,10 +132,6 @@ export default class Interpreter {
       }
     }
 
-    private visitIf (ast: CallNode) {
-
-    }
-
     private visitCall (ast: CallNode) {
       const name = this.rawCode.substring(ast.name.start, ast.name.end)
       const func = this.getVariable(name)
@@ -216,6 +213,10 @@ export default class Interpreter {
       return new Value(num, ValueType.Number)
     }
 
+    private visitIf (ast: CallNode) {
+
+    }
+
     private visit (ast: Node) {
       if (ast.kind instanceof CallNode) {
         const stringName = this.rawCode.substring(ast.kind.name.start, ast.kind.name.end)
@@ -240,6 +241,11 @@ export default class Interpreter {
           case Kind.String : return new Value(value, ValueType.String)
           case Kind.Ident : {
             const name = this.rawCode.substring(ast.kind.value.start, ast.kind.value.end)
+            if (name === 'True') {
+              return new Value(true, ValueType.Boolean)
+            } else if (name === 'False') {
+              return new Value(false, ValueType.Boolean)
+            }
             if (!this.getVariable(name)) {
               errored(CompilerError.NotExists, { code: this.rawCode, range: ast.kind.value, name })
               process.exit(0)
