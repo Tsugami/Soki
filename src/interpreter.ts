@@ -1,19 +1,19 @@
+/* eslint-disable no-unused-vars */
 // right ela é basicamente o computador que vai rodar o código
 // então oq vamos fazer é: ela recebe o AST pra executar então
 // cria uma propriedade chamada "code"
 
 import { Node, CallNode, Literal } from './node'
 import { errored, CompilerError } from './error'
-import { Compiler } from './compiler'
 import { Kind } from './lexer'
-import { raw } from 'express'
 // huum então é só rodar com una função chamada
 // run(ast)
 
 enum ValueType {
     Number,
     String,
-    List
+    List,
+    Function
 }
 
 interface Value {
@@ -30,16 +30,15 @@ const isNull = (value: any): boolean => value === null || value === undefined
 
 export default class Interpreter {
     rawCode: string
-    globalVariables: StackFrame = { vars: [], connected: false }
-    variables: StackFrame[] = []
+    variables: StackFrame[] = [{ vars: [], connected: false }]
 
     constructor (rawCode: string) {
       this.rawCode = rawCode
     }
 
     private getVariable (name: string): Node {
-      if (!isNull(this.globalVariables.vars[name])) {
-        return this.globalVariables.vars[name]
+      if (!isNull(this.variables[0].vars[name])) {
+        return this.variables[0].vars[name]
       } else {
         for (var i = this.variables.length - 1; i === 0; i--) {
           if (!isNull(this.variables[i].vars[name])) {
@@ -56,14 +55,20 @@ export default class Interpreter {
       if (ast.compound.length === 2) {
         const kind = ast.compound[0].kind
         if (kind instanceof Literal && kind.kind === Kind.Ident) {
+          const name = this.rawCode.substring(ast.compound[0].range.start, ast.compound[0].range.end)
+          if (this.getVariable(name)) {
+            errored(CompilerError.AlreadyExists, { code: this.rawCode, range: ast.compound[0].range, name })
+            process.exit(0)
+          }
           const value = this.visit(ast.compound[1])
+          this.variables[this.variables.length - 1].vars[name] = value
         } else {
           errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: ast.compound[0].range })
-          process.exit(1)
+          process.exit(0)
         }
-      } else { // sim sim (let potato 3) compound = parameters = potato e 3
+      } else {
         errored(CompilerError.WrongParameterNumber, { code: this.rawCode, range: ast.name, expected: 2, got: ast.compound.length })
-        process.exit(1)
+        process.exit(0)
       }
     }
 
@@ -93,6 +98,14 @@ export default class Interpreter {
           case 'let': return this.visitLet(ast.kind)
           case 'if': return this.visitIf(ast.kind)
           case 'group': return this.visitGroup(ast.kind)
+          default:
+            this.variables.push({ vars: [], connected: false })
+        }
+      } else if (ast.kind instanceof Literal) {
+        const value = this.rawCode.substring(ast.kind.value.start, ast.kind.value.end)
+        switch (ast.kind.kind) {
+          case Kind.Number : return { value: parseInt(value), type: ValueType.Number }
+          case Kind.String : return { value, type: ValueType.String }
         }
       } else {
 

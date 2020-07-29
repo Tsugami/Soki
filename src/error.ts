@@ -31,16 +31,19 @@ const Colors = {
 enum CompilerError {
   UnexpectedToken,
   ExpectedToken,
-  WrongParameterNumber
+  WrongParameterNumber,
+  AlreadyExists
 }
 
 function errored (errorCode: CompilerError, payload: any) {
-  process.stdout.write('\n[' + Colors.FgRed + Colors.Bright + 'ERROR' + Colors.Reset + '] ')
+  process.stdout.write(Colors.FgRed + Colors.Bright + 'ERR:' + Colors.Reset + ' ')
   if (errorCode === CompilerError.UnexpectedToken) {
     const token = payload.code.substring(payload.range.start, payload.range.end)
     process.stdout.write(Colors.Reset + Colors.Bright + 'Unexpected token "' + token + '"\n\r' + Colors.Reset)
   } else if (errorCode === CompilerError.ExpectedToken) {
     process.stdout.write(Colors.Reset + Colors.Bright + 'Expected token ' + Kind[payload.type] + ' but instead got end of file!\n\r' + Colors.Reset)
+  } else if (errorCode === CompilerError.AlreadyExists) {
+    process.stdout.write(Colors.Reset + Colors.Bright + 'Variable \'' + payload.name + '\' already exists!\n\r' + Colors.Reset)
   }
   const lines = payload.code.split('\n')
   let count = 0

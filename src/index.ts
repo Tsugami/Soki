@@ -9,4 +9,6 @@ import Interpreter from './interpreter'
 const lexer = new Lexer('(let a 2)')
 const ast = new Parser(lexer).parse()
 
-new Interpreter(lexer.code).run(ast)
+const int = new Interpreter(lexer.code)
+
+int.run(ast)
