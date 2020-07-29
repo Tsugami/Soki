@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Range, Kind } from './lexer'
 
-type NodeKind = ListNode | CallNode | Literal | DefNode;
+type NodeKind = ListNode | CallNode | Literal;
 
 class Node {
     range: Range;
@@ -18,18 +18,6 @@ class ListNode {
 
     constructor (list: Array<Node>) {
       this.list = list
-    }
-}
-
-class DefNode {
-    name: Range;
-    params: Node;
-    compound: Array<Node>;
-
-    constructor (name: Range, params: Node, compound: Array<Node>) {
-      this.compound = compound
-      this.params = params
-      this.name = name
     }
 }
 
@@ -53,4 +41,4 @@ class Literal {
     }
 }
 
-export { Node, ListNode, CallNode, Literal, DefNode }
+export { Node, ListNode, CallNode, Literal }

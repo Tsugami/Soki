@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { Lexer, Kind, Token, Range } from './lexer'
 import { errored, CompilerError } from './error'
-import { Literal, Node, CallNode, ListNode, DefNode } from './node'
+import { Literal, Node, CallNode, ListNode } from './node'
 
-type NodeKind = ListNode | CallNode | Literal | DefNode;
+type NodeKind = ListNode | CallNode | Literal;
 
 class Parser {
     lexer: Lexer
