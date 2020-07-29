@@ -108,7 +108,6 @@ class Lexer {
       // It matches some variable size constants (Numbers, Identifiers and Strings)
       switch (true) {
         case isDigit(this.actual()) : return this.digest(Kind.Number, (x) => isDigit(x))
-        case isIdent(this.actual()) : return this.digest(Kind.Ident, (x) => isIdent(x))
         case this.actual() === '"' : {
           this.advance()
           const str = this.digest(Kind.String, (x) => x !== '"')
@@ -118,6 +117,7 @@ class Lexer {
           this.advance()
           return str
         }
+        case isIdent(this.actual()) : return this.digest(Kind.Ident, (x) => isIdent(x))
         case isUseless(this.actual()): {
           this.digest(Kind.WhiteSpace, (x) => isUseless(x))
           return this.nextToken()
