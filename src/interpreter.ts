@@ -214,7 +214,82 @@ export default class Interpreter {
     }
 
     private visitIf (ast: CallNode) {
+      if (ast.compound.length < 2) {
+        errored(CompilerError.WrongParameterNumber, { code: this.rawCode, range: ast.name, expected: 2, got: ast.compound.length })
+        process.exit(0)
+      }
+      const condition = this.visit(ast.compound[0]) as Value
+      const elsePlace = ast.compound.findIndex(el => {
+        if (el.kind instanceof Literal) {
+          const range = el.kind.value
+          return this.rawCode.substring(range.start, range.end) === 'else'
+        }
+      })
+      if (condition.type === ValueType.Boolean && condition.value) {
+        for (let i = 1; i < (elsePlace !== -1 ? elsePlace : ast.compound.length); i++) {
+          this.visit(ast.compound[i])
+        }
+      } else if (elsePlace !== -1) {
+        for (let i = elsePlace + 1; i < ast.compound.length; i++) {
+          this.visit(ast.compound[i])
+        }
+      }
+    }
 
+    private arithComparativeAst (ast: CallNode, apply: ((x: Value, y: Value) => boolean)) : boolean {
+      const el = ast.compound.map(element => [this.visit(element), element.range])
+      if (!(el[0][0] instanceof Value)) {
+        errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: el[0][1] })
+        return process.exit(0)
+      }
+      el.forEach(element => {
+        if (!(element[0] instanceof Value)) {
+          errored(CompilerError.UnexpectedToken, { code: this.rawCode, range: element[1] })
+          process.exit(0)
+        }
+      })
+      for (let i = 0; i < el.length - 1; i++) {
+        if (!apply(el[i][0] as Value, el[i + 1][0] as Value)) {
+          return false
+        }
+      }
+      return true
+    }
+
+    private visitEqual (ast: CallNode) {
+      const result = this.arithComparativeAst(ast, (x, y) => {
+        return x.value === y.value
+      })
+      return new Value(result, ValueType.Boolean)
+    }
+
+    private visitNotEqual (ast: CallNode) {
+      const result = this.arithComparativeAst(ast, (x, y) => {
+        return x.value !== y.value
+      })
+      return new Value(result, ValueType.Boolean)
+    }
+
+    private visitIsGreater (ast: CallNode) {
+      if (ast.compound.length !== 2) {
+        errored(CompilerError.WrongParameterNumber, { code: this.rawCode, range: ast.name, expected: 2, got: ast.compound.length })
+        process.exit(0)
+      }
+      const result = this.arithComparativeAst(ast, (x, y) => {
+        return x.value < y.value
+      })
+      return new Value(result, ValueType.Boolean)
+    }
+
+    private visitIsGreaterOrEqual (ast: CallNode) {
+      if (ast.compound.length !== 2) {
+        errored(CompilerError.WrongParameterNumber, { code: this.rawCode, range: ast.name, expected: 2, got: ast.compound.length })
+        process.exit(0)
+      }
+      const result = this.arithComparativeAst(ast, (x, y) => {
+        return x.value >= y.value
+      })
+      return new Value(result, ValueType.Boolean)
     }
 
     private visit (ast: Node) {
@@ -231,6 +306,10 @@ export default class Interpreter {
           case '-': return this.visitSub(ast.kind)
           case '*': return this.visitMult(ast.kind)
           case '/': return this.visitDiv(ast.kind)
+          case '==': return this.visitEqual(ast.kind)
+          case '!=': return this.visitNotEqual(ast.kind)
+          case '>': return this.visitIsGreater(ast.kind)
+          case '>=': return this.visitIsGreaterOrEqual(ast.kind)
           default:
             this.visitCall(ast.kind)
         }

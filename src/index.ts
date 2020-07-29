@@ -4,17 +4,15 @@
 import { Lexer } from './lexer'
 import { Parser } from './parser'
 import Interpreter from './interpreter'
-
+// n tem >= faz pra mim? KEK
 const lexer = new Lexer(`
+(def pode-beber [idade]
+    (if (>= idade 18)
+        (print "Pode beber po")
+    else
+        (print "Nao pode beber opo voce so tem" idade "anos")))
     
-(def functor [a b]
-    (let c 2)
-    (set a 3)
-    (print (+ a b c)))
-
-(functor 2 3)
-(functor 10 2)
-
+(pode-beber 5)
 `)
 
 const ast = new Parser(lexer).parse()
