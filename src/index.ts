@@ -4,15 +4,18 @@
 import { Lexer } from './lexer'
 import { Parser } from './parser'
 import Interpreter from './interpreter'
-// import { Interpreter } from './interpreter'
 
 const lexer = new Lexer(`
-(group 
-    (let a 2))
     
-(def functor [a b c]
-    (let b 3)
-    (let c 4))`)
+(def functor [a b]
+    (let c 2)
+    (set a 3)
+    (print (+ a b c)))
+
+(functor 2 3)
+(functor 10 2)
+
+`)
 
 const ast = new Parser(lexer).parse()
 

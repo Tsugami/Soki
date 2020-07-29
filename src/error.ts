@@ -32,7 +32,9 @@ enum CompilerError {
   UnexpectedToken,
   ExpectedToken,
   WrongParameterNumber,
-  AlreadyExists
+  AlreadyExists,
+  NotExists,
+  FunctionNotExists
 }
 
 function errored (errorCode: CompilerError, payload: any) {
@@ -44,6 +46,10 @@ function errored (errorCode: CompilerError, payload: any) {
     process.stdout.write(Colors.Reset + Colors.Bright + 'Expected token ' + Kind[payload.type] + ' but instead got end of file!\n\r' + Colors.Reset)
   } else if (errorCode === CompilerError.AlreadyExists) {
     process.stdout.write(Colors.Reset + Colors.Bright + 'Variable \'' + payload.name + '\' already exists!\n\r' + Colors.Reset)
+  } else if (errorCode === CompilerError.NotExists) {
+    process.stdout.write(Colors.Reset + Colors.Bright + 'Variable \'' + payload.name + '\' not exists!\n\r' + Colors.Reset)
+  } else if (errorCode === CompilerError.FunctionNotExists) {
+    process.stdout.write(Colors.Reset + Colors.Bright + 'Function \'' + payload.name + '\' not exists!\n\r' + Colors.Reset)
   }
   const lines = payload.code.split('\n')
   let count = 0
